@@ -1,3 +1,5 @@
+//*custom seed by G-flame
+
 const axios = require('axios');
 const { db } = require('../handlers/db');
 const log = new (require('cat-loggr'))();
@@ -7,23 +9,26 @@ const config = require('../config.json');
 
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout
+  output: process.stdout,
 });
 
 async function seed() {
   try {
     const existingImages = await db.get('images');
     if (existingImages && existingImages.length > 0) {
-      rl.question('\'images\' is already set in the database. Do you want to continue seeding? (y/n) ', async (answer) => {
-        if (answer.toLowerCase() !== 'y') {
-          log.info('Seeding aborted by the user.');
-          rl.close();
-          process.exit(0);
-        } else {
-          await performSeeding();
-          rl.close();
+      rl.question(
+        "'images' is already set in the database. Do you want to continue seeding? (y/n) ",
+        async (answer) => {
+          if (answer.toLowerCase() !== 'y') {
+            log.info('Seeding aborted by the user.');
+            rl.close();
+            process.exit(0);
+          } else {
+            await performSeeding();
+            rl.close();
+          }
         }
-      });
+      );
     } else {
       await performSeeding();
       rl.close();
@@ -36,7 +41,9 @@ async function seed() {
 
 async function performSeeding() {
   try {
-    const response = await axios.get('https://raw.githubusercontent.com/Thavanish/fabric-skyport-image/refs/heads/main/fabric.json');
+    const response = await axios.get(
+      'https://raw.githubusercontent.com/G-flame/skyport/refs/heads/main/assets/docker/fabric.json'
+    );
     const imageData = response.data;
 
     log.info('Received image configuration data');
@@ -45,10 +52,12 @@ async function performSeeding() {
     imageData.Id = uuidv4();
 
     // Create or update the images array in the database
-    let existingImages = await db.get('images') || [];
+    let existingImages = (await db.get('images')) || [];
 
     // Check if this image already exists (by Name or another unique identifier)
-    const existingIndex = existingImages.findIndex(img => img.Name === imageData.Name);
+    const existingIndex = existingImages.findIndex(
+      (img) => img.Name === imageData.Name
+    );
 
     if (existingIndex !== -1) {
       // Update existing image
@@ -63,7 +72,6 @@ async function performSeeding() {
     // Save to database
     await db.set('images', existingImages);
     log.info('Seeding complete!');
-
   } catch (error) {
     log.error(`Failed to fetch or store image data: ${error}`);
     if (error.response) {
