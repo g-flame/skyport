@@ -1,6 +1,5 @@
 ## INSTALLATIONS
 
 ```
-
-curl -sL https://raw.githubusercontent.com/G-flame/skyport/refs/heads/main/installer.sh | bash
+cd /tmp && git clone https://github.com/G-flame/skyport.git && sudo bash /tmp/skyport/script.sh
 ```
